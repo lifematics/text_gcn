@@ -11,8 +11,8 @@ if len(sys.argv) != 2:
 datasets = ['20ng', 'R8', 'R52', 'ohsumed', 'mr']
 dataset = sys.argv[1]
 
-if dataset not in datasets:
-	sys.exit("wrong dataset name")
+# if dataset not in datasets:
+# 	sys.exit("wrong dataset name")
 
 nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
