@@ -1,6 +1,9 @@
 from __future__ import division
 from __future__ import print_function
 
+from tensorflow.python.client import device_lib  ## added by TT
+device_lib.list_local_devices()  ## added by TT
+
 import time
 import tensorflow as tf
 
