@@ -5,10 +5,10 @@ Usage:
   bash create_nega_posi_data.sh [-d dataset name] [-p positives] [-n negatives] [-r test size rate]
 
 Options:
-  -d --dataset   dataset name.
-  -p --positive   positive data directory.
-  -n --negative   negative data directory.
-  -r --test-size   percentage of test data size.(not sample number.) 
+  -d --dataset   dataset name.  default: np
+  -p --positive   positive data directory.  default: data/<dataset name>/positives
+  -n --negative   negative data directory.  default: data/<dataset name>/negatives
+  -r --test-size   percentage of test data size.(not sample number.)  default: 10
 _EOT_
 return 0
 }
