@@ -65,6 +65,9 @@ i=0
 if $PROC; then
   for filepath in $pos_files; do
     str="$(cat $filepath)"
+    if [ ${#str} -lt 5 ]; then
+      echo $filepath
+    fi
     if [ $((RANDOM%+100)) -lt $TEST_RATE ]; then
       echo -e "$i\ttest\tpositive" >> "data/$DIR.txt"
     else
@@ -75,6 +78,9 @@ if $PROC; then
   done
 
   for filepath in $neg_files; do
+    if [ ${#str} -lt 5 ]; then
+      echo $filepath
+    fi
     str="$(cat $filepath)"
     if [ $((RANDOM%+100)) -lt $TEST_RATE ]; then
       echo -e "$i\ttest\tnegative" >> "data/$DIR.txt"
