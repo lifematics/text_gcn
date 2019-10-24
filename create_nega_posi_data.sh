@@ -65,8 +65,9 @@ i=0
 if $PROC; then
   for filepath in $pos_files; do
     str="$(cat $filepath)"
-    if [ ${#str} -lt 5 ]; then
-      echo $filepath
+    if [ ${#str} -lt 2 ]; then
+      echo $filepath has too few words.
+      continue
     fi
     if [ $((RANDOM%+100)) -lt $TEST_RATE ]; then
       echo -e "$i\ttest\tpositive" >> "data/$DIR.txt"
@@ -78,8 +79,9 @@ if $PROC; then
   done
 
   for filepath in $neg_files; do
-    if [ ${#str} -lt 5 ]; then
-      echo $filepath
+    if [ ${#str} -lt 2 ]; then
+      echo $filepath has too few words.
+      continue
     fi
     str="$(cat $filepath)"
     if [ $((RANDOM%+100)) -lt $TEST_RATE ]; then
