@@ -1,9 +1,8 @@
-from nltk.corpus import stopwords
+import sys
 import nltk
 # from nltk.wsd import lesk
 # from nltk.corpus import wordnet as wn
 from utils import clean_str, loadWord2Vec
-import sys
 
 if len(sys.argv) != 2:
 	sys.exit("Use: python remove_words.py <dataset>")
@@ -15,7 +14,7 @@ dataset = sys.argv[1]
 # 	sys.exit("wrong dataset name")
 
 nltk.download('stopwords')
-stop_words = set(stopwords.words('english'))
+stop_words = set(nltk.corpus.stopwords.words('english'))
 print(stop_words)
 
 # Read Word Vectors
@@ -27,11 +26,11 @@ print(stop_words)
 doc_content_list = []
 # for line in open('data/wiki_long_abstracts_en_text.txt', 'r')
 for line in open('data/corpus/' + dataset + '.txt', 'r', encoding='latin1'):
-    doc_content_list.append(clean_str(line.strip()))
+    doc_content_list.append(clean_str(line.strip()).split())
 
 word_freq = {}  # to remove rare words
 for doc_content in doc_content_list:
-    for word in doc_content.split():
+    for word in doc_content:
         if word in word_freq:
             word_freq[word] += 1
         else:
@@ -39,11 +38,10 @@ for doc_content in doc_content_list:
 
 clean_docs = []
 for doc_content in doc_content_list:
-    words = doc_content.split()
     if dataset == 'mr':
-        doc_words = words
+        doc_words = doc_content
     else:
-        doc_words = [word for word in words if word not in stop_words and word_freq[word] >= 5]
+        doc_words = [word for word in doc_content if word not in stop_words and word_freq[word] >= 5]
 
     doc_str = ' '.join(doc_words)
 
