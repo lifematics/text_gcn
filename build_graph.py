@@ -203,6 +203,7 @@ with open('data/corpus/' + dataset + '_labels.txt', 'w') as f:
 # x: feature vectors of training docs, no initial features
 # slect 90% training set
 train_size = len(train_ids)
+test_size = len(test_ids)
 val_size = int(0.1 * train_size)
 real_train_size = train_size - val_size  # - int(0.5 * train_size)
 # different training rates
@@ -234,8 +235,6 @@ x = sp.csr_matrix((data_x, (row_x, col_x)), shape=(real_train_size, word_embeddi
 y = create_label_matrix(shuffled_metadata[:real_train_size], label_list)
 
 # tx: feature vectors of test docs, no initial features
-test_size = len(test_ids)
-
 row_tx = []
 col_tx = []
 data_tx = []
@@ -263,7 +262,7 @@ ty = create_label_matrix(shuffled_metadata[train_size:train_size+test_size], lab
 
 word_vectors = np.random.uniform(-0.01, 0.01, (vocab_size, word_embeddings_dim))
 
-for i in range(len(vocab)):
+for i in range(vocab_size):
     word = vocab[i]
     if word in word_vector_map:
         vector = word_vector_map[word]
@@ -272,7 +271,6 @@ for i in range(len(vocab)):
 row_allx = []
 col_allx = []
 data_allx = []
-
 for i in range(train_size):
     doc_vec = np.zeros(word_embeddings_dim)
     doc_words = shuffled_doc_list[i]
@@ -286,6 +284,7 @@ for i in range(train_size):
         col_allx.append(j)
         # np.random.uniform(-0.25, 0.25)
         data_allx.append(doc_vec[j] / len(words))
+
 for i in range(vocab_size):
     for j in range(word_embeddings_dim):
         row_allx.append(i + train_size)
@@ -378,9 +377,7 @@ for i in range(vocab_size):
                 col.append(train_size + j)
                 weight.append(similarity)
 '''
-print(time()-t0)
 
-#%%
 # doc word frequency
 doc_word_freq = {}
 for doc_id in range(len(shuffled_doc_list)):
@@ -408,6 +405,9 @@ for doc_id in range(len(shuffled_doc_list)):
 
 node_size = train_size + vocab_size + test_size
 adj = sp.csr_matrix((weight, (row, col)), shape=(node_size, node_size))
+
+print(time()-t0)
+
 #%%
 # dump objects
 with open("data/ind.{}.x".format(dataset), 'wb') as f:
