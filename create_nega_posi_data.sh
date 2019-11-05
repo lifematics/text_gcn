@@ -2,12 +2,13 @@
 function usage() {
 cat <<_EOT_
 Usage:
-  bash create_nega_posi_data.sh [-d dataset name] [-p positives] [-n negatives] [-r test size rate]
+  bash create_nega_posi_data.sh [-d dataset name] [-p positives] [-n negatives] [-t prediction targets] [-r test size rate]
 
 Options:
   -d --dataset   dataset name.  default: np
   -p --positive   positive data directory.  default: data/<dataset name>/positives
   -n --negative   negative data directory.  default: data/<dataset name>/negatives
+  -t --target   prediction target data directory.  default: data/<dataset name>/targets
   -r --test-size   percentage of test data size.(not sample number.)  default: 10
 _EOT_
 return 0
@@ -16,6 +17,7 @@ return 0
 DIR="np"
 POS="data/$DIR/positives"
 NEG="data/$DIR/negatives"
+TGT="data/$DIR/targets"
 TEST_RATE=10
 PROC=true
 while getopts "dnpr:h-:" OPT
@@ -26,6 +28,8 @@ do
                 positive)  POS=$OPTARG
                     ;;
                 negative)  NEG=$OPTARG
+                    ;;
+                target)  TGT=$OPTARG
                     ;;
                 dataset)  DIR=$OPTARG
                     ;;
@@ -41,6 +45,8 @@ do
             ;;
         n)  NEG=$OPTARG
             ;;
+        t)  TGT=$OPTARG
+            ;;
         d)  DIR=$OPTARG
             ;;
         r)  TEST_RATE=$OPTARG
@@ -55,11 +61,17 @@ do
 done
 shift $((OPTIND - 1))
 
-cp /dev/null "data/corpus/$DIR.txt"
-cp /dev/null "data/$DIR.txt"
+index_table="data/$DIR.txt"
+corpus_file="data/corpus/$DIR.txt"
+target_table="data/${DIR}_targets.txt"
+
+cp /dev/null $index_table
+cp /dev/null $corpus_file
+cp /dev/null $target_table
 
 pos_files="$POS/*"
 neg_files="$NEG/*"
+target_files="$TGT/*"
 
 i=0
 if $PROC; then
@@ -70,11 +82,11 @@ if $PROC; then
       continue
     fi
     if [ $((RANDOM%+100)) -lt $TEST_RATE ]; then
-      echo -e "$i\ttest\tpositive" >> "data/$DIR.txt"
+      echo -e "$i\ttest\tpositive" >> $index_table
     else
-      echo -e "$i\ttrain\tpositive" >> "data/$DIR.txt"
+      echo -e "$i\ttrain\tpositive" >> $index_table
     fi
-    echo -e "$str" >> "data/corpus/$DIR.txt"
+    echo -e "$str" >> $corpus_file
     i=$((i+1))
   done
 
@@ -85,12 +97,25 @@ if $PROC; then
     fi
     str="$(cat $filepath)"
     if [ $((RANDOM%+100)) -lt $TEST_RATE ]; then
-      echo -e "$i\ttest\tnegative" >> "data/$DIR.txt"
+      echo -e "$i\ttest\tnegative" >> $index_table
     else
-      echo -e "$i\ttrain\tnegative" >> "data/$DIR.txt"
+      echo -e "$i\ttrain\tnegative" >> $index_table
     fi
-    echo -e "$str" >> "data/corpus/$DIR.txt"
+    echo -e "$str" >> $corpus_file
     i=$((i+1))
   done
+  if [ -e $TGT ]; then
+    for filepath in $target_files; do
+      if [ ${#str} -lt 2 ]; then
+        echo $filepath has too few words.
+        continue
+      fi
+      str="$(cat $filepath)"
+      echo -e "$i\tpredict\t" >> $index_table
+      echo -e "$str" >> $corpus_file
+      echo -e "$i\t$filepath" >> $target_table
+      i=$((i+1))
+    done
+  fi
 fi
-unset DIR POS NEG TEST_RATE PROC OPT OPTARG OPTIND
+unset DIR POS NEG TGT TEST_RATE PROC OPT OPTARG OPTIND
