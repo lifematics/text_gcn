@@ -13,6 +13,7 @@ from models import GCN, MLP
 import random
 import os
 import sys
+import shelve
 
 if len(sys.argv) != 2:
 	sys.exit("Use: python train.py <dataset>")
@@ -49,8 +50,25 @@ flags.DEFINE_integer('early_stopping', 10,
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # Load data
-adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, train_size, test_size = load_corpus(
-    FLAGS.dataset)
+# adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, train_size, test_size = load_corpus(
+#     FLAGS.dataset)
+with shelve.open('data/{}.shelve') as d:
+    adj = d['adj']
+    features = d['features']
+    targets = d['targets']
+    y_train = d['y_train']
+    y_val = d['y_val']
+    y_test = d['y_test']
+    train_mask = d['train_mask']
+    val_mask = d['val_mask']
+    test_mask = d['test_mask']
+    train_size = d['train_size']
+    real_train_size = d['real_train_size']
+    val_size = d['val_size']
+    test_size = d['test_size']
+    vocab_size = d['vocab_size']
+    node_size = d['node_size']
+
 print(adj)
 # print(adj[0], adj[1])
 features = sp.identity(features.shape[0])  # featureless

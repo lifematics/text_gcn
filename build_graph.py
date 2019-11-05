@@ -4,6 +4,7 @@ import sys
 import random
 import numpy as np
 import pickle as pkl
+import shelve
 import itertools as it
 import networkx as nx
 import scipy.sparse as sp
@@ -17,13 +18,13 @@ from scipy.spatial.distance import cosine
 # if len(sys.argv) != 2:
 # 	sys.exit("Use: python build_graph.py <dataset>")
 
-# datasets = ['20ng', 'R8', 'R52', 'ohsumed', 'mr']
-# # build corpus
-# dataset = sys.argv[1]
+datasets = ['20ng', 'R8', 'R52', 'ohsumed', 'mr']
+# build corpus
+dataset = sys.argv[1]
 
-dataset = 'np'
-from time import time
-t0 = time()
+# dataset = 'np'
+# from time import time
+# t0 = time()
 
 # if dataset not in datasets:
 # 	sys.exit("wrong dataset name")
@@ -209,7 +210,6 @@ for i in range(vocab_size):
         vector = word_vector_map[word]
         word_vectors[i] = vector
 
-
 # label list
 label_list = list({meta.split('\t')[2] for meta in shuffled_metadata})
 
@@ -220,32 +220,6 @@ def create_label_matrix(doc_name_list, label_list):
 
 with open('data/corpus/' + dataset + '_labels.txt', 'w') as f:
     f.write('\n'.join(label_list))
-
-# different training rates
-
-# with open('data/' + dataset + '.real_train.name', 'w') as f:
-#     f.write('\n'.join(shuffled_metadata[:real_train_size]))
-
-# row_x = []
-# col_x = []
-# data_x = []
-# for i in range(real_train_size):
-#     doc_vec = np.zeros(word_embeddings_dim)
-#     doc_words = shuffled_doc_list[i]
-#     words = doc_words.split()
-#     for word in words:
-#         if word in word_vector_map:
-#             doc_vec = doc_vec + np.array(word_vector_map[word])
-
-#     for j in range(word_embeddings_dim):
-#         row_x.append(i)
-#         col_x.append(j)
-#         # np.random.uniform(-0.25, 0.25)
-#         data_x.append(doc_vec[j] / len(words))
-
-# x = sp.csr_matrix((data_x, (row_x, col_x)), shape=(real_train_size, word_embeddings_dim))
-
-# y = create_label_matrix(shuffled_metadata[:real_train_size], label_list)
 
 # tx: feature vectors of test docs, no initial features
 row_tx = []
@@ -409,13 +383,19 @@ for doc_id in range(total_size):
 
 adj = sp.csr_matrix((weight, (row, col)), shape=(node_size, node_size))
 
+#%% load corpus
 features = sp.vstack((allx, tx)).tolil()
 targets = np.vstack((ally, ty))
 
-train_mask = np.r_[np.ones(real_train_size), np.zeros(node_size - real_train_size)].astype(bool)
-val_mask = np.r_[np.zeros(real_train_size), np.ones(val_size),
-                np.zeros(vocab_size + test_size)].astype(bool)
-test_mask = np.r_[np.zeros(node_size - test_size), np.ones(test_size)].astype(bool)
+train_mask = np.r_[
+    np.ones(real_train_size), np.zeros(node_size - real_train_size)
+].astype(bool)
+val_mask = np.r_[
+    np.zeros(real_train_size), np.ones(val_size), np.zeros(vocab_size + test_size)
+].astype(bool)
+test_mask = np.r_[
+    np.zeros(node_size - test_size), np.ones(test_size)
+].astype(bool)
 
 y_train = targets * np.tile(train_mask,(2,1)).T
 y_val = targets * np.tile(val_mask,(2,1)).T
@@ -423,21 +403,23 @@ y_test = targets * np.tile(test_mask,(2,1)).T
 
 adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj) #???
 
-adj, 
-features, 
-y_train, 
-y_val, 
-y_test, 
-train_mask, 
-val_mask, 
-test_mask, 
-train_size, 
-real_train_size,
-val_size,
-test_size,
-vocab_size,
-node_size
-print(time()-t0)
+with shelve.open('data/{}.shelve') as d:
+    d['adj'] = adj
+    d['features'] = features
+    d['targets'] = targets
+    d['y_train'] = y_train
+    d['y_val'] = y_val
+    d['y_test'] = y_test
+    d['train_mask'] = train_mask
+    d['val_mask'] = val_mask
+    d['test_mask'] = test_mask
+    d['train_size'] = train_size
+    d['real_train_size'] = real_train_size
+    d['val_size'] = val_size
+    d['test_size'] = test_size
+    d['vocab_size'] = vocab_size
+    d['node_size'] = node_size
+# print(time()-t0)
 
 #%%
 # # dump objects
@@ -447,17 +429,17 @@ print(time()-t0)
 # with open("data/ind.{}.y".format(dataset), 'wb') as f:
 #     pkl.dump(y, f)
 
-with open("data/ind.{}.tx".format(dataset), 'wb') as f:
-    pkl.dump(tx, f)
+# with open("data/ind.{}.tx".format(dataset), 'wb') as f:
+#     pkl.dump(tx, f)
 
-with open("data/ind.{}.ty".format(dataset), 'wb') as f:
-    pkl.dump(ty, f)
+# with open("data/ind.{}.ty".format(dataset), 'wb') as f:
+#     pkl.dump(ty, f)
 
-with open("data/ind.{}.allx".format(dataset), 'wb') as f:
-    pkl.dump(allx, f)
+# with open("data/ind.{}.allx".format(dataset), 'wb') as f:
+#     pkl.dump(allx, f)
 
-with open("data/ind.{}.ally".format(dataset), 'wb') as f:
-    pkl.dump(ally, f)
+# with open("data/ind.{}.ally".format(dataset), 'wb') as f:
+#     pkl.dump(ally, f)
 
-with open("data/ind.{}.adj".format(dataset), 'wb') as f:
-    pkl.dump(adj, f)
+# with open("data/ind.{}.adj".format(dataset), 'wb') as f:
+#     pkl.dump(adj, f)
