@@ -67,6 +67,9 @@ with shelve.open('data/{}.shelve') as d:
     test_size = d['test_size']
     vocab_size = d['vocab_size']
     node_size = d['node_size']
+    y_pred = d['y_pred']
+    pred_mask = d['pred_mask']
+    pred_size = d['pred_size']
 
 print(adj)
 # print(adj[0], adj[1])
@@ -120,6 +123,14 @@ def evaluate(features, support, labels, mask, placeholders):
     outs_val = sess.run([model.loss, model.accuracy, model.pred, model.labels], feed_dict=feed_dict_val)
     return outs_val[0], outs_val[1], outs_val[2], outs_val[3], (time.time() - t_test)
 
+# Define model evaluation function
+def predict(features, support, labels, mask, placeholders):
+    t_test = time.time()
+    feed_dict_val = construct_feed_dict(
+        features, support, labels, mask, placeholders)
+    outs_val = sess.run([model.pred], feed_dict=feed_dict_val)
+    return outs_val[0], (time.time() - t_test)
+
 
 # Init variables
 sess.run(tf.global_variables_initializer())
@@ -160,6 +171,9 @@ test_cost, test_acc, pred, labels, test_duration = evaluate(
     features, support, y_test, test_mask, placeholders)
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
       "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
+
+pred, labels, test_duration = predict(
+    features, support, y_test, test_mask, placeholders)
 
 test_pred = []
 test_labels = []

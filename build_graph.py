@@ -42,6 +42,7 @@ word_vector_map = {}
 doc_name_list = []
 doc_train_list = []
 doc_test_list = []
+doc_pred_list = []
 
 for line in open('data/' + dataset + '.txt', 'r'):
     doc_name_list.append(line.strip())
@@ -50,6 +51,8 @@ for line in open('data/' + dataset + '.txt', 'r'):
         doc_test_list.append(line.strip())
     elif temp[1].find('train') != -1:
         doc_train_list.append(line.strip())
+    elif temp[1].find('target') != -1:
+        doc_pred_list.append(line.strip())
 
 doc_content_list = []
 for line in open('data/corpus/' + dataset + '.clean.txt', 'r'):
@@ -73,12 +76,21 @@ for test_name in doc_test_list:
     test_ids.append(test_id)
 random.shuffle(test_ids)
 
+pred_ids = []
+for pred_name in doc_pred_list:
+    pred_id = doc_name_list.index(pred_name)
+    pred_ids.append(pred_id)
+random.shuffle(pred_ids)
+
 with open('data/' + dataset + '.test.index', 'w') as f:
     f.write('\n'.join(map(str, test_ids)))
 
+with open('data/' + dataset + '.target.index', 'w') as f:
+    f.write('\n'.join(map(str, pred_ids)))
+
 shuffled_metadata = []
 shuffled_doc_list = []
-for ind in train_ids + test_ids:
+for ind in train_ids + test_ids + pred_ids:
     shuffled_metadata.append(doc_name_list[ind])
     shuffled_doc_list.append(doc_content_list[ind])
 
@@ -108,9 +120,11 @@ vocab_size = len(vocab)
 total_size = len(shuffled_doc_list)
 train_size = len(train_ids)
 test_size = len(test_ids)
+learning_size = train_size + test_size
+pred_size = len(pred_ids)
 val_size = int(0.1 * train_size)
 real_train_size = train_size - val_size  # - int(0.5 * train_size)
-node_size = train_size + vocab_size + test_size
+node_size = train_size + vocab_size + test_size + pred_size
 
 word_doc_list = {}
 
@@ -242,6 +256,28 @@ for i in range(test_size):
 tx = sp.csr_matrix((data_tx, (row_tx, col_tx)), shape=(test_size, word_embeddings_dim))
 
 ty = create_label_matrix(shuffled_metadata[train_size:train_size+test_size], label_list)
+
+# px: feature vectors of prediction docs, no initial features
+row_px = []
+col_px = []
+data_px = []
+for i in range(pred_size):
+    doc_vec = np.zeros(word_embeddings_dim)
+    doc_words = shuffled_doc_list[i + learning_size]
+    words = doc_words.split()
+    for word in words:
+        if word in word_vector_map:
+            doc_vec = doc_vec + np.array(word_vector_map[word])
+
+    for j in range(word_embeddings_dim):
+        row_px.append(i)
+        col_px.append(j)
+        # np.random.uniform(-0.25, 0.25)
+        data_px.append(doc_vec[j] / len(words))
+
+px = sp.csr_matrix((data_px, (row_px, col_px)), shape=(pred_size, word_embeddings_dim))
+
+py = create_label_matrix(shuffled_metadata[learning_size:learning_size+pred_size], label_list)
 
 # allx: the the feature vectors of both labeled and unlabeled training instances
 # unlabeled training instances -> words
@@ -391,15 +427,19 @@ train_mask = np.r_[
     np.ones(real_train_size), np.zeros(node_size - real_train_size)
 ].astype(bool)
 val_mask = np.r_[
-    np.zeros(real_train_size), np.ones(val_size), np.zeros(vocab_size + test_size)
+    np.zeros(real_train_size), np.ones(val_size), np.zeros(vocab_size + test_size + pred_size)
 ].astype(bool)
 test_mask = np.r_[
-    np.zeros(node_size - test_size), np.ones(test_size)
+    np.zeros(node_size - test_size), np.ones(test_size), np.zeros(pred_size)
+].astype(bool)
+pred_mask = np.r_[
+    np.zeros(node_size - pred_size), np.ones(pred_size)
 ].astype(bool)
 
 y_train = targets * np.tile(train_mask,(2,1)).T
 y_val = targets * np.tile(val_mask,(2,1)).T
 y_test = targets * np.tile(test_mask,(2,1)).T
+y_pred = targets * np.tile(pred_mask,(2,1)).T
 
 adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj) #???
 
@@ -419,6 +459,9 @@ with shelve.open('data/{}.shelve') as d:
     d['test_size'] = test_size
     d['vocab_size'] = vocab_size
     d['node_size'] = node_size
+    d['y_pred'] = y_pred
+    d['pred_mask'] = pred_mask
+    d['pred_size'] = pred_size
 # print(time()-t0)
 
 #%%
