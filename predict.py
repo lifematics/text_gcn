@@ -186,14 +186,14 @@ print("Micro average Test Precision, Recall and F1-Score...")
 print(metrics.precision_recall_fscore_support(test_labels, test_pred, average='micro'))
 
 # doc and word embeddings
-print('embeddings:')
+# print('embeddings:')
 word_embeddings = outs[3][train_size: adj.shape[0] - test_size]
 train_doc_embeddings = outs[3][:train_size]  # include val docs
 test_doc_embeddings = outs[3][adj.shape[0] - test_size:]
 
-print(len(word_embeddings), len(train_doc_embeddings),
-      len(test_doc_embeddings))
-print(word_embeddings)
+# print(len(word_embeddings), len(train_doc_embeddings),
+#       len(test_doc_embeddings))
+# print(word_embeddings)
 
 f = open('data/corpus/' + dataset + '_vocab.txt', 'r')
 words = f.readlines()
@@ -249,10 +249,13 @@ for ind, tgt in target_dict.items():
 #     print()
 
 outstr = '\n'.join(['\t'.join([key,val]) for key, val in out.items()])
+print('Prediction results:')
+print()
 print(outstr)
+print()
 
 with open('results/' + dataset + '_result.txt', 'w') as file:
     file.write(outstr)
 
-print()
 print('The results are saved in results/' + dataset + '_result.txt')
+print()
