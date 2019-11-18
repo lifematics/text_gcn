@@ -2,7 +2,7 @@
 function usage() {
 cat <<_EOT_
 Usage:
-  bash create_nega_posi_data.sh [-d dataset name] [-p positives] [-n negatives] [-t prediction targets] [-r test size rate]
+  bash create_nega_posi_data.sh [-d dataset name] [-p positives] [-n negatives] [-t prediction targets] [-r test size rate] [-l cut off file length]
 
 Options:
   -d --dataset   dataset name.  default: np
@@ -10,6 +10,7 @@ Options:
   -n --negative   negative data directory.  default: data/<dataset name>/negatives
   -t --target   prediction target data directory.  default: data/<dataset name>/targets
   -r --test-size   percentage of test data size.(not sample number.)  default: 10
+  -l --min-length minimum string length of the file to be truncated.  default: 20
 _EOT_
 return 0
 }
@@ -20,6 +21,7 @@ NEG="data/$DIR/negatives"
 TGT="data/$DIR/targets"
 TEST_RATE=10
 PROC=true
+MIN_LEN=20
 while getopts "dnpr:h-:" OPT
 do
     case $OPT in
@@ -34,6 +36,8 @@ do
                 dataset)  DIR=$OPTARG
                     ;;
                 test-size)  TEST_RATE=$OPTARG
+                    ;;
+                min-length)  MIN_LEN=$OPTARG
                     ;;
                 help)
                     usage
@@ -50,6 +54,8 @@ do
         d)  DIR=$OPTARG
             ;;
         r)  TEST_RATE=$OPTARG
+            ;;
+        l)  MIN_LEN=$OPTARG
             ;;
         h)  usage
             PROC=false
@@ -77,7 +83,7 @@ i=0
 if $PROC; then
   for filepath in $pos_files; do
     str="$(cat $filepath)"
-    if [ ${#str} -lt 11 ]; then
+    if [ ${#str} -lt $MIN_LEN ]; then
       echo $filepath has too few words.
       continue
     fi
@@ -91,7 +97,7 @@ if $PROC; then
   done
 
   for filepath in $neg_files; do
-    if [ ${#str} -lt 11 ]; then
+    if [ ${#str} -lt $MIN_LEN ]; then
       echo $filepath has too few words.
       continue
     fi
@@ -106,7 +112,7 @@ if $PROC; then
   done
   if [ -e $TGT ]; then
     for filepath in $target_files; do
-      if [ ${#str} -lt 11 ]; then
+      if [ ${#str} -lt $MIN_LEN ]; then
         echo $filepath has too few words.
         continue
       fi
@@ -118,4 +124,4 @@ if $PROC; then
     done
   fi
 fi
-unset DIR POS NEG TGT TEST_RATE PROC OPT OPTARG OPTIND
+unset DIR POS NEG TGT TEST_RATE PROC OPT OPTARG OPTIND MIN_LEN
