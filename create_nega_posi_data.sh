@@ -77,7 +77,7 @@ i=0
 if $PROC; then
   for filepath in $pos_files; do
     str="$(cat $filepath)"
-    if [ ${#str} -lt 2 ]; then
+    if [ ${#str} -lt 11 ]; then
       echo $filepath has too few words.
       continue
     fi
@@ -91,7 +91,7 @@ if $PROC; then
   done
 
   for filepath in $neg_files; do
-    if [ ${#str} -lt 2 ]; then
+    if [ ${#str} -lt 11 ]; then
       echo $filepath has too few words.
       continue
     fi
@@ -106,7 +106,7 @@ if $PROC; then
   done
   if [ -e $TGT ]; then
     for filepath in $target_files; do
-      if [ ${#str} -lt 2 ]; then
+      if [ ${#str} -lt 11 ]; then
         echo $filepath has too few words.
         continue
       fi
