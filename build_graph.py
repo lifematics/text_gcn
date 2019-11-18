@@ -15,8 +15,8 @@ from nltk.corpus import wordnet as wn
 from sklearn.feature_extraction.text import TfidfVectorizer
 from scipy.spatial.distance import cosine
 
-# if len(sys.argv) != 2:
-# 	sys.exit("Use: python build_graph.py <dataset>")
+if len(sys.argv) != 2:
+	sys.exit("Use: python build_graph.py <dataset>")
 
 datasets = ['20ng', 'R8', 'R52', 'ohsumed', 'mr']
 # build corpus
@@ -423,47 +423,48 @@ adj = sp.csr_matrix((weight, (row, col)), shape=(node_size, node_size))
 features = sp.vstack((allx, tx, px)).tolil()
 targets = np.vstack((ally, ty, py))
 
-train_mask = np.r_[
-    np.ones(real_train_size), np.zeros(node_size - real_train_size)
-].astype(bool)
-val_mask = np.r_[
-    np.zeros(real_train_size), np.ones(val_size), np.zeros(vocab_size + test_size + pred_size)
-].astype(bool)
-test_mask = np.r_[
-    np.zeros(node_size - test_size - pred_size), np.ones(test_size), np.zeros(pred_size)
-].astype(bool)
-pred_mask = np.r_[
-    np.zeros(node_size - pred_size), np.ones(pred_size)
-].astype(bool)
-
-y_train = targets * np.tile(train_mask,(2,1)).T
-y_val = targets * np.tile(val_mask,(2,1)).T
-y_test = targets * np.tile(test_mask,(2,1)).T
-y_pred = targets * np.tile(pred_mask,(2,1)).T
-
 adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj) #???
+
+# train_mask = np.r_[
+#     np.ones(real_train_size), np.zeros(node_size - real_train_size)
+# ].astype(bool)
+# val_mask = np.r_[
+#     np.zeros(real_train_size), np.ones(val_size), np.zeros(vocab_size + test_size + pred_size)
+# ].astype(bool)
+# test_mask = np.r_[
+#     np.zeros(node_size - test_size - pred_size), np.ones(test_size), np.zeros(pred_size)
+# ].astype(bool)
+# pred_mask = np.r_[
+#     np.zeros(node_size - pred_size), np.ones(pred_size)
+# ].astype(bool)
+
+# y_train = targets * np.tile(train_mask,(2,1)).T
+# y_val = targets * np.tile(val_mask,(2,1)).T
+# y_test = targets * np.tile(test_mask,(2,1)).T
+# y_pred = targets * np.tile(pred_mask,(2,1)).T
 
 with shelve.open('data/' + dataset + '.shelve') as d:
     d.clear()
     d['adj'] = adj
     d['features'] = features
     d['targets'] = targets
-    d['y_train'] = y_train
-    d['y_val'] = y_val
-    d['y_test'] = y_test
-    d['train_mask'] = train_mask
-    d['val_mask'] = val_mask
-    d['test_mask'] = test_mask
     d['train_size'] = train_size
     d['real_train_size'] = real_train_size
     d['val_size'] = val_size
     d['test_size'] = test_size
     d['vocab_size'] = vocab_size
     d['node_size'] = node_size
-    d['y_pred'] = y_pred
-    d['pred_mask'] = pred_mask
     d['pred_size'] = pred_size
     d['label_list'] = label_list
+    # d['y_train'] = y_train
+    # d['y_val'] = y_val
+    # d['y_test'] = y_test
+    # d['train_mask'] = train_mask
+    # d['val_mask'] = val_mask
+    # d['test_mask'] = test_mask
+    # d['y_pred'] = y_pred
+    # d['pred_mask'] = pred_mask
+
 # print(time()-t0)
 
 #%%

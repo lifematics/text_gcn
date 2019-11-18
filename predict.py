@@ -55,22 +55,40 @@ with shelve.open('data/' + dataset + '.shelve') as d:
     adj = d['adj']
     features = d['features']
     targets = d['targets']
-    y_train = d['y_train']
-    y_val = d['y_val']
-    y_test = d['y_test']
-    train_mask = d['train_mask']
-    val_mask = d['val_mask']
-    test_mask = d['test_mask']
     train_size = d['train_size']
     real_train_size = d['real_train_size']
     val_size = d['val_size']
     test_size = d['test_size']
     vocab_size = d['vocab_size']
     node_size = d['node_size']
-    y_pred = d['y_pred']
-    pred_mask = d['pred_mask']
     pred_size = d['pred_size']
     label_list = d['label_list']
+    # y_train = d['y_train']
+    # y_val = d['y_val']
+    # y_test = d['y_test']
+    # train_mask = d['train_mask']
+    # val_mask = d['val_mask']
+    # test_mask = d['test_mask']
+    # y_pred = d['y_pred']
+    # pred_mask = d['pred_mask']
+
+train_mask = np.r_[
+    np.ones(real_train_size), np.zeros(node_size - real_train_size)
+].astype(bool)
+val_mask = np.r_[
+    np.zeros(real_train_size), np.ones(val_size), np.zeros(vocab_size + test_size + pred_size)
+].astype(bool)
+test_mask = np.r_[
+    np.zeros(node_size - test_size - pred_size), np.ones(test_size), np.zeros(pred_size)
+].astype(bool)
+pred_mask = np.r_[
+    np.zeros(node_size - pred_size), np.ones(pred_size)
+].astype(bool)
+
+y_train = targets * np.tile(train_mask,(2,1)).T
+y_val = targets * np.tile(val_mask,(2,1)).T
+y_test = targets * np.tile(test_mask,(2,1)).T
+y_pred = targets * np.tile(pred_mask,(2,1)).T
 
 print(adj)
 # print(adj[0], adj[1])
