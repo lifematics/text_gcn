@@ -10,7 +10,7 @@ Options:
   -n --negative   negative data directory.  default: data/<dataset name>/negatives
   -t --target   prediction target data directory.  default: data/<dataset name>/targets
   -r --test-size   percentage of test data size.(not sample number.)  default: 10
-  -l --min-length minimum string length of the file to be truncated.  default: 20
+  -l --min-length minimum string length of the file to be truncated.  default: 100
 _EOT_
 return 0
 }
@@ -21,8 +21,8 @@ NEG="data/$DIR/negatives"
 TGT="data/$DIR/targets"
 TEST_RATE=10
 PROC=true
-MIN_LEN=20
-while getopts "dnpr:h-:" OPT
+MIN_LEN=100
+while getopts "dnptrl:h-:" OPT
 do
     case $OPT in
         -)
@@ -45,13 +45,13 @@ do
                     ;;
             esac
             ;;
-        p)  POS=$OPTARG
+        d)  DIR=$OPTARG
             ;;
         n)  NEG=$OPTARG
             ;;
-        t)  TGT=$OPTARG
+        p)  POS=$OPTARG
             ;;
-        d)  DIR=$OPTARG
+        t)  TGT=$OPTARG
             ;;
         r)  TEST_RATE=$OPTARG
             ;;
