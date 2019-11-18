@@ -51,7 +51,7 @@ flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 # Load data
 # adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, train_size, test_size = load_corpus(
 #     FLAGS.dataset)
-with shelve.open('data/{}.shelve') as d:
+with shelve.open('data/' + dataset + '.shelve') as d:
     adj = d['adj']
     features = d['features']
     targets = d['targets']

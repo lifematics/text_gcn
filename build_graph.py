@@ -443,7 +443,8 @@ y_pred = targets * np.tile(pred_mask,(2,1)).T
 
 adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj) #???
 
-with shelve.open('data/{}.shelve') as d:
+with shelve.open('data/' + dataset + '.shelve') as d:
+    d.clear()
     d['adj'] = adj
     d['features'] = features
     d['targets'] = targets
