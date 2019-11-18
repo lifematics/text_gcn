@@ -70,6 +70,7 @@ with shelve.open('data/{}.shelve') as d:
     y_pred = d['y_pred']
     pred_mask = d['pred_mask']
     pred_size = d['pred_size']
+    label_list = d['label_list']
 
 print(adj)
 # print(adj[0], adj[1])
@@ -118,18 +119,15 @@ sess = tf.Session(config=session_conf)
 # Define model evaluation function
 def evaluate(features, support, labels, mask, placeholders):
     t_test = time.time()
-    feed_dict_val = construct_feed_dict(
-        features, support, labels, mask, placeholders)
+    feed_dict_val = construct_feed_dict(features, support, labels, mask, placeholders)
     outs_val = sess.run([model.loss, model.accuracy, model.pred, model.labels], feed_dict=feed_dict_val)
     return outs_val[0], outs_val[1], outs_val[2], outs_val[3], (time.time() - t_test)
 
 # Define model evaluation function
 def predict(features, support, labels, mask, placeholders):
-    t_test = time.time()
-    feed_dict_val = construct_feed_dict(
-        features, support, labels, mask, placeholders)
-    outs_val = sess.run([model.pred], feed_dict=feed_dict_val)
-    return outs_val[0], (time.time() - t_test)
+    feed_dict_val = construct_feed_dict(features, support, labels, mask, placeholders)
+    outs_val = sess.run([model.pred, model.labels], feed_dict=feed_dict_val)
+    return outs_val[0], outs_val[1]
 
 
 # Init variables
@@ -171,9 +169,6 @@ test_cost, test_acc, pred, labels, test_duration = evaluate(
     features, support, y_test, test_mask, placeholders)
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
       "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
-
-pred, labels, test_duration = predict(
-    features, support, y_test, test_mask, placeholders)
 
 test_pred = []
 test_labels = []
@@ -235,3 +230,29 @@ doc_embeddings_str = '\n'.join(doc_vectors)
 f = open('data/' + dataset + '_doc_vectors.txt', 'w')
 f.write(doc_embeddings_str)
 f.close()
+
+#%%
+prediction, masked_labels = predict(
+    features, support, y_pred, pred_mask, placeholders)
+target_index = [ind.strip() for ind in open('data/' + dataset + '.target.index', 'r')]
+target_dict = {c[0]:c[1] for c in map(str.split, map(str.strip, open('data/' + dataset + '_targets.txt', 'r')))}
+
+out = dict()
+for ind, tgt in target_dict.items():
+    out[tgt] = label_list[prediction[-pred_size:][target_index.index(ind)]]
+
+# for label in label_list:
+#     print('predicted as ', label)
+#     for tgt, val in out.items():
+#         if val == label:
+#             print(tgt)
+#     print()
+
+outstr = '\n'.join(['\t'.join([key,val]) for key, val in out.items()])
+print(outstr)
+
+with open('results/' + dataset + '_result.txt', 'w') as file:
+    file.write(outstr)
+
+print()
+print('The results are saved in results/' + dataset + '_result.txt')

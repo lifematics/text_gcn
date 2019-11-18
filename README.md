@@ -1,3 +1,18 @@
+## Prediction for Negative/Positive data
+1. Run 
+```bash
+bash create_nega_posi_data.sh [-d dataset name] [-p positives] [-n negatives] [-t prediction targets] [-r test size rate]
+```
+- The default directory of positive labeled data is `data/np/positives`, negatives is `data/np/negatives` and targets is `data/np/targets`.
+
+1. Run `python remove_words.py np`
+
+2. Run `python build_graph.py np`
+
+3. Run `python predict.py np`
+
+The result file is created as `results/<dataset_name>_result.txt`
+
 # text_gcn
 
 The implementation of Text GCN in our paper:

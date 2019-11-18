@@ -111,7 +111,7 @@ if $PROC; then
         continue
       fi
       str="$(cat $filepath)"
-      echo -e "$i\tpredict\tnegative" >> $index_table
+      echo -e "$i\ttarget\tnegative" >> $index_table
       echo -e "$str" >> $corpus_file
       echo -e "$i\t$filepath" >> $target_table
       i=$((i+1))

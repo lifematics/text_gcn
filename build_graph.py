@@ -420,8 +420,8 @@ for doc_id in range(total_size):
 adj = sp.csr_matrix((weight, (row, col)), shape=(node_size, node_size))
 
 #%% load corpus
-features = sp.vstack((allx, tx)).tolil()
-targets = np.vstack((ally, ty))
+features = sp.vstack((allx, tx, px)).tolil()
+targets = np.vstack((ally, ty, py))
 
 train_mask = np.r_[
     np.ones(real_train_size), np.zeros(node_size - real_train_size)
@@ -430,7 +430,7 @@ val_mask = np.r_[
     np.zeros(real_train_size), np.ones(val_size), np.zeros(vocab_size + test_size + pred_size)
 ].astype(bool)
 test_mask = np.r_[
-    np.zeros(node_size - test_size), np.ones(test_size), np.zeros(pred_size)
+    np.zeros(node_size - test_size - pred_size), np.ones(test_size), np.zeros(pred_size)
 ].astype(bool)
 pred_mask = np.r_[
     np.zeros(node_size - pred_size), np.ones(pred_size)
@@ -462,6 +462,7 @@ with shelve.open('data/{}.shelve') as d:
     d['y_pred'] = y_pred
     d['pred_mask'] = pred_mask
     d['pred_size'] = pred_size
+    d['label_list'] = label_list
 # print(time()-t0)
 
 #%%

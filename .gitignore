@@ -4,5 +4,6 @@ env/
 data/
 logs/
 models/
+results/
 .vscode/
 *.ipynb
