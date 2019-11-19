@@ -82,7 +82,10 @@ target_files="$TGT/*"
 i=0
 if $PROC; then
   for filepath in $pos_files; do
-    str="$(cat $filepath)"
+    if [ ${filepath: -4} != ".txt" ] && [ ${filepath: -5} != ".abst" ]; then
+      continue
+    fi
+    str="$(cat $filepath | tr '\n' ' ')"
     if [ ${#str} -lt $MIN_LEN ]; then
       echo $filepath has too few words.
       continue
@@ -97,11 +100,14 @@ if $PROC; then
   done
 
   for filepath in $neg_files; do
+    if [ ${filepath: -4} != ".txt" ] && [ ${filepath: -5} != ".abst" ]; then
+      continue
+    fi
+    str="$(cat $filepath | tr '\n' ' ')"
     if [ ${#str} -lt $MIN_LEN ]; then
       echo $filepath has too few words.
       continue
     fi
-    str="$(cat $filepath)"
     if [ $((RANDOM%+100)) -lt $TEST_RATE ]; then
       echo -e "$i\ttest\tnegative" >> $index_table
     else
@@ -112,11 +118,14 @@ if $PROC; then
   done
   if [ -e $TGT ]; then
     for filepath in $target_files; do
+      if [ ${filepath: -4} != ".txt" ] && [ ${filepath: -5} != ".abst" ]; then
+        continue
+      fi
+      str="$(cat $filepath | tr '\n' ' ')"
       if [ ${#str} -lt $MIN_LEN ]; then
         echo $filepath has too few words.
         continue
       fi
-      str="$(cat $filepath)"
       echo -e "$i\ttarget\tnegative" >> $index_table
       echo -e "$str" >> $corpus_file
       echo -e "$i\t$filepath" >> $target_table
